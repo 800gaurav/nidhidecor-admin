@@ -6,10 +6,10 @@ import useToastHandler from './useToastHandler';
 export const loginUrl = 'https://dhantag.com'
 
 
-export const baseUrl = 'http://localhost:5010';
-// export const baseUrl = 'https://node.axora.homes';
-// export const imgBaseUrl = 'https://node.axora.homes';
-export const imgBaseUrl = 'http://localhost:5010';
+// export const baseUrl = 'http://localhost:5010';
+export const baseUrl = 'https://node.axora.homes';
+export const imgBaseUrl = 'https://node.axora.homes';
+// export const imgBaseUrl = 'http://localhost:5010';
 
 const useAxios = (initialConfig = {}, options = {}) => {
   const { showToast } = useToastHandler();
