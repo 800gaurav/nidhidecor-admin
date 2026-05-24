@@ -40,6 +40,11 @@ const _nav = [
       },
       {
         component: CNavItem,
+        name: 'Add User',
+        to: '/users/add',
+      },
+      {
+        component: CNavItem,
         name: 'Active Users',
         to: '/active-users',
       },
@@ -71,6 +76,35 @@ const _nav = [
     name: 'Purchase History',
     to: '/manual-purchase/history',
     icon: <CIcon icon={cilChart} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Products',
+    to: '/product/create',
+    icon: <CIcon icon={cilDollar} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavGroup,
+    name: 'Orders',
+    to: '/orders',
+    icon: <CIcon icon={cilCash} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Pending Order',
+        to: '/orders/pending',
+      },
+      {
+        component: CNavItem,
+        name: 'Complete Order',
+        to: '/orders/approved',
+      },
+      {
+        component: CNavItem,
+        name: 'Reject Order',
+        to: '/orders/rejected',
+      },
+    ],
   },
   {
     component: CNavItem,

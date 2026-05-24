@@ -22,8 +22,10 @@ import toast from 'react-hot-toast'
 import apiRoutes from '../variables/apiRoutes'
 import Export from '../views/Export'
 import color from '../views/color'
+import { useNavigate } from 'react-router-dom'
 
 const ActiveUsers = () => {
+  const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [userdata, setUserdata] = useState([])
   const [filtered, setFiltered] = useState([])
@@ -57,6 +59,24 @@ const ActiveUsers = () => {
   useEffect(() => {
     getActiveUsers()
   }, [])
+
+  const suspendUser = async (userId) => {
+    try {
+      const res = await fetchData({
+        url: `/api/v1/admin/user/unblockuser/${userId}`,
+        method: 'PATCH',
+        data: { status: true },
+      })
+
+      if (res?.message) {
+        toast.success('User suspended successfully')
+        getActiveUsers()
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to suspend user')
+    }
+  }
 
   const handleSearch = () => {
     let filteredList = [...userdata]
@@ -231,12 +251,14 @@ const ActiveUsers = () => {
                   <CTableHeaderCell>Wallet Balance</CTableHeaderCell>
                   <CTableHeaderCell>Sponsor</CTableHeaderCell>
                   <CTableHeaderCell>Date</CTableHeaderCell>
+                  <CTableHeaderCell>Action</CTableHeaderCell>
+                  <CTableHeaderCell>Tree</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
                 {paginatedUsers.length === 0 ? (
                   <CTableRow>
-                    <CTableDataCell colSpan="8" className="text-center">
+                    <CTableDataCell colSpan="10" className="text-center">
                       No active users found
                     </CTableDataCell>
                   </CTableRow>
@@ -265,6 +287,45 @@ const ActiveUsers = () => {
                         ) : (
                           "N/A"
                         )}
+                      </CTableDataCell>
+                      <CTableDataCell>
+                        <div className="d-flex gap-2 flex-wrap">
+                          <CButton
+                            color="info"
+                            size="sm"
+                            onClick={() =>
+                              navigate(`/user/update/${user.userId}`, {
+                                state: { user, isActivated: user.isActivated },
+                              })
+                            }
+                            style={{
+                              background: `linear-gradient(135deg, ${color.primary} 0%, ${color.accent} 50%, ${color.secondary} 100%)`,
+                              color: 'white',
+                            }}
+                          >
+                            Update
+                          </CButton>
+                          <CButton
+                            color="danger"
+                            size="sm"
+                            onClick={() => suspendUser(user.userId)}
+                          >
+                            Suspend
+                          </CButton>
+                        </div>
+                      </CTableDataCell>
+                      <CTableDataCell>
+                        <CButton
+                          color="info"
+                          size="sm"
+                          onClick={() => navigate(`/tree/${user._id}`)}
+                          style={{
+                            background: `linear-gradient(135deg, ${color.primary} 0%, ${color.accent} 50%, ${color.secondary} 100%)`,
+                            color: 'white',
+                          }}
+                        >
+                          Tree
+                        </CButton>
                       </CTableDataCell>
                     </CTableRow>
                   ))

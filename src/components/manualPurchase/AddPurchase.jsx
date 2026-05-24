@@ -67,7 +67,7 @@ const AddPurchase = () => {
 
       if (res.success) {
         showAlert(
-          `Bill added. Direct 5%: Rs ${Number(res.data.directIncomeAmount || 0).toFixed(2)}, Team pool 10%: Rs ${Number(res.data.binaryPoolAmount || 0).toFixed(2)}`,
+          `Bill added. Direct 3%: Rs ${Number(res.data.directIncomeAmount || 0).toFixed(2)}, Buyer cashback 5%: Rs ${Number(res.data.purchaseCashbackAmount || 0).toFixed(2)}, Team pool 7%: Rs ${Number(res.data.binaryPoolAmount || 0).toFixed(2)}`,
           'success',
         )
         setFormData(initialForm)
@@ -152,7 +152,7 @@ const AddPurchase = () => {
 
               {amount > 0 && (
                 <CAlert color="info">
-                  Direct sponsor income: Rs {(amount * 0.05).toFixed(2)}. Team binary pool: Rs {(amount * 0.10).toFixed(2)}. Total business payout is capped at 15%.
+                  Direct sponsor income: Rs {(amount * 0.03).toFixed(2)}. Buyer cashback: Rs {(amount * 0.05).toFixed(2)}. Team binary pool: Rs {(amount * 0.07).toFixed(2)}.
                 </CAlert>
               )}
 

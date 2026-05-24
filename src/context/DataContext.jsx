@@ -36,6 +36,7 @@ import { FaMoneyBillTrendUp, FaMoneyBillTransfer } from "react-icons/fa6";
 import { LuUsersRound } from "react-icons/lu";
 import { RiMoneyRupeeCircleFill, RiPassPendingLine } from "react-icons/ri";
 import { FaUserShield, FaUsers, FaFileInvoiceDollar } from "react-icons/fa";
+import { FaBoxOpen } from "react-icons/fa";
 import { TbReportMoney } from "react-icons/tb";
 import { TiBook } from "react-icons/ti";
 import { SiMoneygram } from "react-icons/si";
@@ -67,6 +68,11 @@ const lists = [
         to: '/users-allusers',
         icon: <FaUsers size={20} style={{  marginRight: 5  }} />,
       },
+      {
+              component: CNavItem,
+              name: 'Add User',
+              to: '/users/add',
+            },
       {
         component: CNavItem,
         name: 'Active Users',
@@ -123,45 +129,78 @@ const lists = [
         to: '/manual-purchase/history',
         icon: <TbReportMoney size={20} style={{ marginRight: 5 }} />,
       },
-      {
-        component: CNavItem,
-        name: 'Tree View',
-        to: '/tree',
-        icon: <CIcon icon={cilLan} customClassName="nav-icon" />,
-      },
+      // {
+      //   component: CNavItem,
+      //   name: 'Tree View',
+      //   to: '/tree',
+      //   icon: <CIcon icon={cilLan} customClassName="nav-icon" />,
+      // },
     ],
   },
-
-
-
-
 
   {
     component: CNavGroup,
-    name: 'Deposit',
-    to: '/topup-Pending',
-    icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
+    name: 'Products & Orders',
+    to: '/commerce',
+    icon: <FaBoxOpen size={20} style={{ marginRight: 5 }} />,
     items: [
       {
         component: CNavItem,
-        name: 'Pending Deposit',
-        to: '/topup-pending',
-        icon: <FaMoneyBillTransfer size={20} style={{ marginRight: 5 }} />,
+        name: 'Products',
+        to: '/product/create',
+        icon: <FaBoxOpen size={18} style={{ marginRight: 5 }} />,
       },
       {
         component: CNavItem,
-        name: 'Approved Deposit',
-        to: '/topup-approved',
-        icon: <FaMoneyBillTransfer size={20} style={{ marginRight: 5 }} />,
+        name: 'Pending Orders',
+        to: '/orders/pending',
+        icon: <MdOutlinePendingActions size={20} style={{ marginRight: 5 }} />,
       },
       {
         component: CNavItem,
-        name: 'Rejected Deposit',
-        to: '/topup-rejected',
+        name: 'Complete Orders',
+        to: '/orders/approved',
+        icon: <FaMoneyBillTrendUp size={20} style={{ marginRight: 5 }} />,
+      },
+      {
+        component: CNavItem,
+        name: 'Rejected Orders',
+        to: '/orders/rejected',
         icon: <FaMoneyBillTransfer size={20} style={{ marginRight: 5 }} />,
       },
     ],
   },
+
+
+
+
+
+  // {
+  //   component: CNavGroup,
+  //   name: 'Deposit',
+  //   to: '/topup-Pending',
+  //   icon: <CIcon icon={cilMoney} customClassName="nav-icon" />,
+  //   items: [
+  //     {
+  //       component: CNavItem,
+  //       name: 'Pending Deposit',
+  //       to: '/topup-pending',
+  //       icon: <FaMoneyBillTransfer size={20} style={{ marginRight: 5 }} />,
+  //     },
+  //     {
+  //       component: CNavItem,
+  //       name: 'Approved Deposit',
+  //       to: '/topup-approved',
+  //       icon: <FaMoneyBillTransfer size={20} style={{ marginRight: 5 }} />,
+  //     },
+  //     {
+  //       component: CNavItem,
+  //       name: 'Rejected Deposit',
+  //       to: '/topup-rejected',
+  //       icon: <FaMoneyBillTransfer size={20} style={{ marginRight: 5 }} />,
+  //     },
+  //   ],
+  // },
 
   {
     component: CNavGroup,

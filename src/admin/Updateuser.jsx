@@ -150,19 +150,19 @@ const Updateuser = () => {
               onChange={(e) => handleChange('password', e.target.value)}
             />
           </CCol>
-          <CCol md={6}>
+          {/* <CCol md={6}>
             <CFormInput
               label="Total Invested"
               type="number"
               value={form.totalInvested}
               onChange={(e) => handleChange('totalInvested', e.target.value)}
             />
-          </CCol>
+          </CCol> */}
         </CRow>
 
         {/* Password */}
         {/* <CRow className="mb-3">
-          
+
         </CRow> */}
 
         {/* IsActivated Toggle */}

@@ -24,11 +24,12 @@ import useAxios from '../hooks/useAxios'
 import toast from 'react-hot-toast'
 import apiRoutes from '../variables/apiRoutes'
 import { exportToExcel, exportToPDF, exportToWordPress } from '../help/DownloadFiles'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import color from '../views/color'
 import Export from '../views/Export'
 
 const AllUsers = () => {
+  const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1)
   const [userdata, setUserdata] = useState([])
   const [filtered, setFiltered] = useState([])
@@ -234,6 +235,7 @@ const AllUsers = () => {
                   <CTableHeaderCell>Phone</CTableHeaderCell>
 
                   <CTableHeaderCell>Date</CTableHeaderCell>
+                  <CTableHeaderCell>Tree</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
@@ -261,6 +263,19 @@ const AllUsers = () => {
                       ) : (
                         "N/A"
                       )}
+                    </CTableDataCell>
+                    <CTableDataCell>
+                      <CButton
+                        color="info"
+                        size="sm"
+                        onClick={() => navigate(`/tree/${user._id}`)}
+                        style={{
+                          background: `linear-gradient(135deg, ${color.primary} 0%, ${color.accent} 50%, ${color.secondary} 100%)`,
+                          color: 'white',
+                        }}
+                      >
+                        Tree
+                      </CButton>
                     </CTableDataCell>
                   </CTableRow>
                 ))}

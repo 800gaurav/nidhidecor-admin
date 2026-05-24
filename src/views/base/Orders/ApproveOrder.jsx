@@ -47,14 +47,12 @@ const ApproveOrder = () => {
   const getUserLists = async () => {
     try {
       const data = await fetchData({
-        url: "/api/v1/user/order/get-all",
+        url: "/api/v1/user/order/get-all?status=approved",
         method: "GET",
       });
 
       if (data.success) {
-        const pendingOrders = data.data.filter(
-          (order) => order.status === "approved"
-        );
+        const pendingOrders = data.data || [];
         setUserdata(pendingOrders);
         setFiltered(pendingOrders);
       } else toast.error("Failed to fetch orders");
@@ -76,7 +74,9 @@ const ApproveOrder = () => {
       list = list.filter(
         (order) =>
           order.name?.toLowerCase().includes(term) ||
-          order.id?.toLowerCase().includes(term)
+          order.id?.toLowerCase().includes(term) ||
+          order.billNumber?.toLowerCase().includes(term) ||
+          order.userId?.toLowerCase().includes(term)
       );
     }
 
@@ -192,7 +192,7 @@ const ApproveOrder = () => {
         <CTableBody>
           {paginated.length ? (
             paginated.map((order, idx) => (
-              <CTableRow key={order.id}>
+              <CTableRow key={order.id || order._id}>
                 <CTableDataCell>
                   {(currentPage - 1) * itemsPerPage + idx + 1}
                 </CTableDataCell>
@@ -235,7 +235,7 @@ const ApproveOrder = () => {
           ) : (
             <CTableRow>
               <CTableDataCell colSpan="8" className="text-center text-muted">
-                No pending orders found
+                No complete orders found
               </CTableDataCell>
             </CTableRow>
           )}

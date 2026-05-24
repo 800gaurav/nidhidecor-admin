@@ -26,6 +26,7 @@ const PurchaseHistory = () => {
   const { fetchData } = useAxios()
   const [bills, setBills] = useState([])
   const [loading, setLoading] = useState(true)
+  const [settling, setSettling] = useState(false)
   const [alert, setAlert] = useState({ show: false, message: '', color: '' })
   const [filters, setFilters] = useState({ from: '', to: '', userId: '' })
 
@@ -59,6 +60,30 @@ const PurchaseHistory = () => {
   const formatCurrency = (amount) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount || 0)
   const formatDate = (date) => (date ? new Date(date).toLocaleDateString('en-IN') : '-')
 
+  const handleBinarySettlement = async () => {
+    setSettling(true)
+    try {
+      const res = await fetchData({
+        url: '/api/v1/admin/purchase-bills/settle-binary',
+        method: 'POST',
+        data: { manualTest: true },
+      })
+
+      if (res.success) {
+        const settlement = res.data || {}
+        showAlert(
+          `BM income calculated. Paid: ${formatCurrency(settlement.paidAmount)} to ${settlement.usersPaid || 0} users. Skipped: ${settlement.usersSkippedForDirects || 0} users without 2 active directs.`,
+          'success',
+        )
+        fetchBills()
+      }
+    } catch (error) {
+      showAlert(error?.message || 'Failed to calculate BM income', 'danger')
+    } finally {
+      setSettling(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="text-center p-5">
@@ -72,8 +97,11 @@ const PurchaseHistory = () => {
     <CRow>
       <CCol xs={12}>
         <CCard className="mb-4">
-          <CCardHeader>
+          <CCardHeader className="d-flex flex-column flex-md-row gap-2 align-items-md-center justify-content-between">
             <strong>Purchase Bill History</strong>
+            <CButton color="success" size="sm" onClick={handleBinarySettlement} disabled={settling}>
+              {settling ? <><CSpinner size="sm" className="me-2" />Calculating...</> : 'Calculate BM Income'}
+            </CButton>
           </CCardHeader>
           <CCardBody>
             {alert.show && <CAlert color={alert.color}>{alert.message}</CAlert>}
@@ -111,14 +139,15 @@ const PurchaseHistory = () => {
                   <CTableHeaderCell>Bill No.</CTableHeaderCell>
                   <CTableHeaderCell>Product</CTableHeaderCell>
                   <CTableHeaderCell>Amount</CTableHeaderCell>
-                  <CTableHeaderCell>Direct 5%</CTableHeaderCell>
-                  <CTableHeaderCell>Team Pool 10%</CTableHeaderCell>
+                  <CTableHeaderCell>Direct 3%</CTableHeaderCell>
+                  <CTableHeaderCell>Cashback 5%</CTableHeaderCell>
+                  <CTableHeaderCell>Team Pool 7%</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>
               <CTableBody>
                 {bills.length === 0 ? (
                   <CTableRow>
-                    <CTableDataCell colSpan={8} className="text-center">No bills found</CTableDataCell>
+                    <CTableDataCell colSpan={9} className="text-center">No bills found</CTableDataCell>
                   </CTableRow>
                 ) : (
                   bills.map((bill, index) => (
@@ -130,6 +159,7 @@ const PurchaseHistory = () => {
                       <CTableDataCell>{bill.productName}<br /><small>{bill.designName || bill.materialType || ''}</small></CTableDataCell>
                       <CTableDataCell>{formatCurrency(bill.amount)}</CTableDataCell>
                       <CTableDataCell>{formatCurrency(bill.directIncomeAmount)}</CTableDataCell>
+                      <CTableDataCell>{formatCurrency(bill.purchaseCashbackAmount)}</CTableDataCell>
                       <CTableDataCell>{formatCurrency(bill.binaryPoolAmount)}</CTableDataCell>
                     </CTableRow>
                   ))

@@ -5,12 +5,11 @@ import useAuth from './useAuth';
 import useToastHandler from './useToastHandler';
 export const loginUrl = 'https://dhantag.com'
 
-// export const imgBaseUrl = 'http://192.168.1.55:3075';
-// export const baseUrl = 'http://192.168.1.52:3075/';
-// export const baseUrl = 'http://localhost:3075';
-export const baseUrl = 'https://node.axora.homes'
-export const imgBaseUrl = 'https://node.axora.homes';
-// export const imgBaseUrl = 'http://192.168.1.52:3075';
+
+export const baseUrl = 'http://localhost:5010';
+// export const baseUrl = 'https://node.axora.homes';
+// export const imgBaseUrl = 'https://node.axora.homes';
+export const imgBaseUrl = 'http://localhost:5010';
 
 const useAxios = (initialConfig = {}, options = {}) => {
   const { showToast } = useToastHandler();

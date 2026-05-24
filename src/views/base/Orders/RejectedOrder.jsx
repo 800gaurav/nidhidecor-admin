@@ -47,14 +47,12 @@ const RejectedOrder = () => {
   const getUserLists = async () => {
     try {
       const data = await fetchData({
-        url: "/api/v1/user/order/get-all",
+        url: "/api/v1/user/order/get-all?status=rejected",
         method: "GET",
       });
 
       if (data.success) {
-        const pendingOrders = data.data.filter(
-          (order) => order.status === "rejected"
-        );
+        const pendingOrders = data.data || [];
         setUserdata(pendingOrders);
         setFiltered(pendingOrders);
       } else toast.error("Failed to fetch orders");
@@ -76,7 +74,9 @@ const RejectedOrder = () => {
       list = list.filter(
         (order) =>
           order.name?.toLowerCase().includes(term) ||
-          order.id?.toLowerCase().includes(term)
+          order.id?.toLowerCase().includes(term) ||
+          order.billNumber?.toLowerCase().includes(term) ||
+          order.userId?.toLowerCase().includes(term)
       );
     }
 
@@ -229,7 +229,7 @@ const RejectedOrder = () => {
         <CTableBody>
           {paginated.length ? (
             paginated.map((order, idx) => (
-              <CTableRow key={order.id}>
+              <CTableRow key={order.id || order._id}>
                 <CTableDataCell>
                   {(currentPage - 1) * itemsPerPage + idx + 1}
                 </CTableDataCell>
@@ -269,7 +269,7 @@ const RejectedOrder = () => {
                     size="sm"
                     color="success"
                     className="me-1 text-white"
-                    onClick={() => handleUpdateStatus(order.id, "approved")}
+                    onClick={() => handleUpdateStatus(order.id || order._id, "approved")}
                     disabled={order.status !== "pending"}
                   >
                     Approve
@@ -278,7 +278,7 @@ const RejectedOrder = () => {
                   <CButton
                     size="sm"
                     color="danger"
-                    onClick={() => handleUpdateStatus(order.id, "rejected")}
+                    onClick={() => handleUpdateStatus(order.id || order._id, "rejected")}
                     disabled={order.status !== "pending"}
                   >
                     Reject
@@ -289,7 +289,7 @@ const RejectedOrder = () => {
           ) : (
             <CTableRow>
               <CTableDataCell colSpan="8" className="text-center text-muted">
-                No pending orders found
+                No rejected orders found
               </CTableDataCell>
             </CTableRow>
           )}

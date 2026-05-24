@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  CCard, 
-  CCardBody, 
-  CCardHeader, 
-  CCol, 
-  CRow, 
-  CSpinner, 
-  CListGroup, 
+import {
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CCol,
+  CRow,
+  CSpinner,
+  CListGroup,
   CListGroupItem,
   CBadge,
   CAvatar,
@@ -26,7 +26,7 @@ const Profile = () => {
       const res = await fetchData({
         url: "/api/v1/user/profile"
       });
-      
+
       if (res.success) {
         setProfile(res.data);
       }

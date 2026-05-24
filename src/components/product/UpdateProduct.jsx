@@ -1,105 +1,127 @@
 import React, { useEffect, useState } from 'react'
 import {
-  CRow,
-  CCol,
-  CFormInput,
-  CFormLabel,
-  CFormTextarea,
-  CFormSelect,
   CButton,
   CCard,
   CCardBody,
-  CSpinner,
+  CCol,
   CForm,
+  CFormInput,
+  CFormLabel,
+  CFormSelect,
+  CFormTextarea,
+  CRow,
+  CSpinner,
 } from '@coreui/react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import useAxios from '../../hooks/useAxios'
+import useAxios, { imgBaseUrl } from '../../hooks/useAxios'
 import LoadingSpinner from '../common/LoadinSpinner'
+
+const initialForm = {
+  handle: '',
+  title: '',
+  description: '',
+  vendor: '',
+  category: 'Uncategorized',
+  productCode: '',
+  inventoryQty: 0,
+  dp: '',
+  mrp: '',
+  sp: '',
+  status: 'active',
+  image: '',
+  imageFile: null,
+}
+
+const cleanText = (value = '') =>
+  String(value)
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const getImageUrl = (path) => {
+  if (!path) return ''
+  if (/^https?:\/\//i.test(path)) return path
+  return `${imgBaseUrl}${path.replace(/\\/g, '/')}`
+}
 
 const UpdateProduct = () => {
   const { userId } = useParams()
   const location = useLocation()
-  const user = location.state?.user
-  console.log(user)
+  const product = location.state?.user
   const navigate = useNavigate()
-
   const { fetchData, loading } = useAxios()
-
-  const [form, setForm] = useState({
-    title: '',
-    mrp: '',
-    description: '',
-    category: '',
-    sp: '',
-    dp: '',
-    shippingCharge: '',
-    cgstRate: '',
-    sgstRate: '',
-    igstRate: '',
-    hsnCode: '',
-    color: '#000000',
-    image: null,
-  })
-
+  const [form, setForm] = useState(initialForm)
   const [preview, setPreview] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    if (user) {
-      console.log(user)
-      setForm({
-        title: user.title || '',
-        mrp: user.mrp || '',
-        description: user.description || '',
-        category: user.category || '',
-        sp: user.sp || '',
-        dp: user.dp || '',
-        shippingCharge: user.shippingCharge || '',
-        cgstRate: user.cgstRate || '',
-        sgstRate: user.sgstRate || '',
-        igstRate: user.igstRate || '',
-        hsnCode: user.hsnCode || '',
-        color: user.color || '#000000',
-        image: null,
-      })
-
-      if (user.image) setPreview(user.image)
-    }
-  }, [user])
-
+    if (!product) return
+    setForm({
+      handle: product.handle || '',
+      title: cleanText(product.title) || '',
+      description: cleanText(product.description) || '',
+      vendor: product.vendor || '',
+      category: product.category || 'Uncategorized',
+      productCode: product.productCode || '',
+      inventoryQty: product.inventoryQty ?? 0,
+      dp: product.dp || '',
+      mrp: product.mrp || '',
+      sp: product.sp || '',
+      status: product.status || 'active',
+      image: product.image || '',
+      imageFile: null,
+    })
+    setPreview(getImageUrl(product.image))
+  }, [product])
 
   const handleChange = (key, value) => {
-    setForm((prev) => ({ ...prev, [key]: value }))
+    setForm((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === 'dp' && !prev.sp) next.sp = value
+      return next
+    })
   }
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      setForm((prev) => ({ ...prev, image: file }))
-      setPreview(URL.createObjectURL(file))
-    }
+    if (!file) return
+    setForm((prev) => ({ ...prev, imageFile: file, image: '' }))
+    setPreview(URL.createObjectURL(file))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsSubmitting(true)
+    if (!form.title || !form.dp) {
+      toast.error('Title and price are required')
+      return
+    }
+
+    const formData = new FormData()
+    const payload = {
+      handle: form.handle,
+      title: cleanText(form.title),
+      description: cleanText(form.description),
+      vendor: form.vendor,
+      category: form.category || 'Uncategorized',
+      productCode: form.productCode,
+      inventoryQty: Number(form.inventoryQty || 0),
+      dp: Number(form.dp || 0),
+      mrp: Number(form.mrp || form.dp || 0),
+      sp: Number(form.sp || form.dp || 0),
+      status: form.status,
+      image: form.image,
+    }
+
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') formData.append(key, value)
+    })
+    if (form.imageFile) formData.append('image', form.imageFile)
 
     try {
-      const formData = new FormData()
-      Object.keys(form).forEach((key) => {
-        const value = form[key]
-        if (key === 'image') {
-          if (value) formData.append('image', value)
-        } else if (value !== undefined && value !== null && value !== '') {
-          if (['mrp', 'sp', 'dp', 'cgstRate', 'sgstRate', 'igstRate', 'shippingCharge'].includes(key)) {
-            formData.append(key, Number(value))
-          } else {
-            formData.append(key, value)
-          }
-        }
-      })
-
+      setIsSubmitting(true)
       const res = await fetchData({
         url: `/api/v1/admin/product/update/${userId}`,
         method: 'put',
@@ -107,215 +129,104 @@ const UpdateProduct = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 
-      console.log(res)
       if (res.success) {
         toast.success('Product updated successfully')
-        navigate(-1)
+        navigate('/product/create')
       } else {
         toast.error(res.message || 'Update failed')
       }
     } catch (err) {
-      console.error(err)
-      toast.error('Error while updating product')
+      toast.error(err?.message || 'Error while updating product')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-
-  const handleReset = () => {
-    if (user) {
-      setForm({
-        title: user.title || '',
-        mrp: user.mrp || '',     // <-- change here
-        sp: user.sp || '',
-        dp: user.dp || '',
-        description: user.description || '',
-        category: user.category || '',
-        shippingCharge: user.shippingCharge || '',
-        cgstRate: user.cgstRate || '',
-        sgstRate: user.sgstRate || '',
-        igstRate: user.igstRate || '',
-        hsnCode: user.hsnCode || '',
-        color: user.color || '#000000',
-        image: null,
-      })
-      setPreview(user.image || null)
-    }
-  }
-
-
   return (
     <CCard className="p-3">
       {loading && <LoadingSpinner />}
       <CCardBody>
-        <CForm onSubmit={handleSubmit}>
-          {/* Row 1: Title + Category */}
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel>Title *</CFormLabel>
-              <CFormInput
-                value={form.title}
-                onChange={(e) => handleChange('title', e.target.value)}
-                required
-              />
-            </CCol>
-            <CCol md={6}>
-              <CFormLabel>Category</CFormLabel>
-              <CFormSelect
-                value={form.category}
-                onChange={(e) => handleChange('category', e.target.value)}
-              >
-                <option value="">Select Category</option>
-                <option value="books">Books</option>
-                <option value="gadgets">Gadgets</option>
-                <option value="clothing">Clothing</option>
-                <option value="grocery">Grocery</option>
-                <option value="test">Test</option>
-              </CFormSelect>
-            </CCol>
-          </CRow>
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="mb-0">Update Product</h5>
+          <CButton color="secondary" variant="outline" onClick={() => navigate('/product/create')}>Back</CButton>
+        </div>
 
-          {/* Row 2: Price + MRP + SP + DP */}
-          <CRow className="mb-3">
-            {/* <CCol md={3}>
-              <CFormLabel>Price *</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.mrp}
-                onChange={(e) => handleChange('price', e.target.value)}
-                required
-              />
-            </CCol> */}
+        <CForm onSubmit={handleSubmit}>
+          <CRow className="g-3">
+            <CCol md={8}>
+              <CFormLabel>Title *</CFormLabel>
+              <CFormInput value={form.title} onChange={(e) => handleChange('title', e.target.value)} required />
+            </CCol>
+            <CCol md={4}>
+              <CFormLabel>Handle</CFormLabel>
+              <CFormInput value={form.handle} onChange={(e) => handleChange('handle', e.target.value)} />
+            </CCol>
+            <CCol md={4}>
+              <CFormLabel>SKU / Product Code</CFormLabel>
+              <CFormInput value={form.productCode} onChange={(e) => handleChange('productCode', e.target.value)} />
+            </CCol>
+            <CCol md={4}>
+              <CFormLabel>Vendor</CFormLabel>
+              <CFormInput value={form.vendor} onChange={(e) => handleChange('vendor', e.target.value)} />
+            </CCol>
+            <CCol md={4}>
+              <CFormLabel>Category</CFormLabel>
+              <CFormInput value={form.category} onChange={(e) => handleChange('category', e.target.value)} />
+            </CCol>
             <CCol md={3}>
-              <CFormLabel>MRP</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.mrp}
-                onChange={(e) => handleChange('mrp', e.target.value)}
-              />
+              <CFormLabel>Price *</CFormLabel>
+              <CFormInput type="number" min="0" step="0.01" value={form.dp} onChange={(e) => handleChange('dp', e.target.value)} required />
+            </CCol>
+            <CCol md={3}>
+              <CFormLabel>Compare Price</CFormLabel>
+              <CFormInput type="number" min="0" step="0.01" value={form.mrp} onChange={(e) => handleChange('mrp', e.target.value)} />
             </CCol>
             <CCol md={3}>
               <CFormLabel>SP</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.sp}
-                onChange={(e) => handleChange('sp', e.target.value)}
-              />
+              <CFormInput type="number" min="0" step="0.01" value={form.sp} onChange={(e) => handleChange('sp', e.target.value)} />
             </CCol>
             <CCol md={3}>
-              <CFormLabel>DP</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.dp}
-                onChange={(e) => handleChange('dp', e.target.value)}
-              />
-            </CCol>
-          </CRow>
-
-     
-          <CRow className="mb-3">
-            <CCol md={4}>
-              <CFormLabel>Shipping Charge</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.shippingCharge}
-                onChange={(e) => handleChange('shippingCharge', e.target.value)}
-              />
-            </CCol>
-         
-            
-          </CRow>
-
-          {/* Row 4: CGST + SGST + IGST */}
-          <CRow className="mb-3">
-            <CCol md={4}>
-              <CFormLabel>CGST Rate (%)</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.cgstRate}
-                onChange={(e) => handleChange('cgstRate', e.target.value)}
-              />
+              <CFormLabel>Inventory Qty</CFormLabel>
+              <CFormInput type="number" min="0" value={form.inventoryQty} onChange={(e) => handleChange('inventoryQty', e.target.value)} />
             </CCol>
             <CCol md={4}>
-              <CFormLabel>SGST Rate (%)</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.sgstRate}
-                onChange={(e) => handleChange('sgstRate', e.target.value)}
-              />
+              <CFormLabel>Status</CFormLabel>
+              <CFormSelect value={form.status} onChange={(e) => handleChange('status', e.target.value)}>
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="archived">Archived</option>
+              </CFormSelect>
             </CCol>
-            <CCol md={4}>
-              <CFormLabel>IGST Rate (%)</CFormLabel>
-              <CFormInput
-                type="number"
-                value={form.igstRate}
-                onChange={(e) => handleChange('igstRate', e.target.value)}
-              />
-            </CCol>
-          </CRow>
-
-          {/* Row 5: HSN + Color */}
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel>HSN Code</CFormLabel>
-              <CFormInput
-                value={form.hsnCode}
-                onChange={(e) => handleChange('hsnCode', e.target.value)}
-              />
+            <CCol md={8}>
+              <CFormLabel>Image URL</CFormLabel>
+              <CFormInput value={form.image} onChange={(e) => {
+                handleChange('image', e.target.value)
+                setPreview(e.target.value)
+              }} />
             </CCol>
             <CCol md={6}>
-              <CFormLabel>Color</CFormLabel>
-              <CFormInput
-                type="color"
-                value={form.color}
-                onChange={(e) => handleChange('color', e.target.value)}
-              />
-            </CCol>
-          </CRow>
-
-          {/* Description */}
-          <CRow className="mb-3">
-            <CCol>
-              <CFormLabel>Description</CFormLabel>
-              <CFormTextarea
-                value={form.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-                rows={3}
-                style={{ resize: 'vertical' }}
-              />
-            </CCol>
-          </CRow>
-
-          {/* Image Upload */}
-          <CRow className="mb-3">
-            <CCol md={6}>
-              <CFormLabel>Product Image</CFormLabel>
+              <CFormLabel>Upload Image</CFormLabel>
               <CFormInput type="file" accept="image/*" onChange={handleFileChange} />
             </CCol>
             <CCol md={6}>
               {preview ? (
-                <img
-                  src={preview}
-                  alt="Preview"
-                  style={{ width: '180px', height: '80px', objectFit: 'contain', borderRadius: '8px' }}
-                />
+                <img src={preview} alt="Preview" style={{ width: '180px', height: '90px', objectFit: 'contain', borderRadius: 8, border: '1px solid #ddd' }} />
               ) : (
-                <p>No Image</p>
+                <p className="text-muted mb-0">No image</p>
               )}
+            </CCol>
+            <CCol xs={12}>
+              <CFormLabel>Description</CFormLabel>
+              <CFormTextarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} rows={3} />
             </CCol>
           </CRow>
 
-          <CRow className="mt-4">
-            <CCol className="d-flex gap-2">
-              <CButton color="primary" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? <CSpinner size="sm" /> : 'Update Product'}
-              </CButton>
-              <CButton color="secondary" type="button" onClick={handleReset}>
-                Reset
-              </CButton>
-            </CCol>
-          </CRow>
+          <div className="d-flex gap-2 mt-4">
+            <CButton color="primary" type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <CSpinner size="sm" /> : 'Update Product'}
+            </CButton>
+            <CButton color="secondary" type="button" onClick={() => navigate('/product/create')}>Cancel</CButton>
+          </div>
         </CForm>
       </CCardBody>
     </CCard>
